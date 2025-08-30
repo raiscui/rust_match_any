@@ -14,6 +14,16 @@ documentation = "https://docs.rs/match_any/"
 keywords = ["match", "any", "enum", "dispatch", "macro"]
 categories = ["no-std", "rust-patterns"]
 
+[features]
+default = []
+video-player = []
+audio-player = []
+text-editor = []
+experimental = []
+extended-features = []
+never-enabled = []
+also-never-enabled = []
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

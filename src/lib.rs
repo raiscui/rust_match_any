@@ -61,6 +61,29 @@
 /// match result { Ok(i) => Some(i), Err(i) => Some(i) };
 /// ```
 ///
+/// # Conditional Compilation Support
+///
+/// The macro supports `#[cfg(...)]` attributes for conditional compilation:
+///
+/// ```
+/// use match_any::match_any;
+///
+/// enum MediaType { Video(String), Audio(String), Image(String) }
+/// use MediaType::*;
+///
+/// let media = MediaType::Video("movie.mp4".to_string());
+/// let result = match_any!(media,
+///     #[cfg(feature = "video-player")]
+///     Video(name) => format!("Playing video: {}", name),
+///     #[cfg(feature = "audio-player")]
+///     Audio(name) => format!("Playing audio: {}", name),
+///     Image(name) => format!("Displaying image: {}", name),
+///     _ => "Unsupported media type".to_string()
+/// );
+/// # // 对于测试，我们假设没有启用任何 feature
+/// # assert_eq!(result, "Unsupported media type");
+/// ```
+///
 /// # Enum Dispatch
 ///
 /// Similarly to the [enum_dispatch crate](https://crates.io/crates/enum_dispatch),
@@ -103,11 +126,41 @@
 /// ```
 #[macro_export]
 macro_rules! match_any {
-    ( $expr:expr , $( $( $pat:pat )|+ => $expr_arm:expr ),+ ) => {
+    // 递归处理规则：处理 #[cfg] 分支（保留属性）
+    (@impl $expr:expr; [$($arms:tt)*]; #[cfg($($cfg_meta:tt)*)] $($cfg_pat:pat)|+ => $cfg_expr:expr, $($rest:tt)*) => {
+        match_any!(@impl $expr; [$($arms)* #[cfg($($cfg_meta)*)] $($cfg_pat => $cfg_expr,)+]; $($rest)*)
+    };
+
+    // 递归处理规则：处理普通分支（添加到结果中）
+    (@impl $expr:expr; [$($arms:tt)*]; $($pat:pat)|+ => $arm_expr:expr, $($rest:tt)*) => {
+        match_any!(@impl $expr; [$($arms)* $($pat => $arm_expr,)+]; $($rest)*)
+    };
+
+    // 递归处理规则：处理最后一个 #[cfg] 分支
+    (@impl $expr:expr; [$($arms:tt)*]; #[cfg($($cfg_meta:tt)*)] $($cfg_pat:pat)|+ => $cfg_expr:expr) => {
         match $expr {
-            $(
-                $( $pat => $expr_arm, )+
-            )+
+            $($arms)*
+            #[cfg($($cfg_meta)*)]
+            $($cfg_pat => $cfg_expr,)+
         }
+    };
+
+    // 递归处理规则：处理最后一个普通分支
+    (@impl $expr:expr; [$($arms:tt)*]; $($pat:pat)|+ => $arm_expr:expr) => {
+        match $expr {
+            $($arms)* $($pat => $arm_expr,)+
+        }
+    };
+
+    // 递归处理规则：所有分支都已处理完
+    (@impl $expr:expr; [$($arms:tt)*];) => {
+        match $expr {
+            $($arms)*
+        }
+    };
+
+    // 公共入口点
+    ($expr:expr, $($arms:tt)*) => {
+        match_any!(@impl $expr; []; $($arms)*)
     };
 }
