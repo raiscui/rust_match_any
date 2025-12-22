@@ -18,6 +18,11 @@ categories = ["no-std", "rust-patterns"]
 default = []
 video-player = []
 audio-player = []
+text-editor = []
+experimental = []
+never-enabled = []
+also-never-enabled = []
+extended-features = []
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
