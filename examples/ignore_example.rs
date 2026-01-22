@@ -16,7 +16,7 @@ fn main() {
     let values = vec![
         Integer(42),
         Text("hello".to_string()),
-        Float(3.14),
+        Float(std::f64::consts::PI),
         Boolean(true),
     ];
 

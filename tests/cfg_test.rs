@@ -63,7 +63,11 @@ fn test_complex_patterns() {
     use Value::*;
 
     // 测试复杂模式匹配
-    let values = vec![Value::A(1), Value::B("hello".to_string()), Value::C(3.14)];
+    let values = vec![
+        Value::A(1),
+        Value::B("hello".to_string()),
+        Value::C(std::f64::consts::PI),
+    ];
 
     let results: Vec<String> = values
         .into_iter()
